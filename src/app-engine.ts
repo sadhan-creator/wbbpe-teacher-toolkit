@@ -1011,12 +1011,54 @@ export function printHolidayPlanList() {
 
   printDiv.innerHTML = html;
   printDiv.style.display = 'block';
-  window.print();
-  setTimeout(() => {
+  
+  const inIframe = window.self !== window.top;
+
+  if (inIframe) {
+    try {
+      const printWin = window.open('', '_blank');
+      if (printWin) {
+        printWin.document.write(`
+          <html>
+            <head>
+              <title>Print Planner</title>
+              <style>
+                @media print {
+                  @page { size: portrait; margin: 10mm; }
+                  body { margin: 0; padding: 20px; }
+                }
+              </style>
+            </head>
+            <body>
+              ${html}
+              <script>
+                window.onload = () => {
+                  setTimeout(() => { window.print(); window.close(); }, 500);
+                };
+              </script>
+            </body>
+          </html>
+        `);
+        printWin.document.close();
+        return;
+      }
+    } catch (e) {
+      console.warn('Popup blocked or iframe restriction:', e);
+    }
+  }
+
+  const afterPrint = () => {
     document.body.classList.remove('printing-planner', 'print-portrait');
     printDiv.style.display = 'none';
     printDiv.innerHTML = '';
-  }, 1500);
+    window.removeEventListener('afterprint', afterPrint);
+  };
+  window.addEventListener('afterprint', afterPrint);
+
+  setTimeout(() => {
+    window.print();
+    setTimeout(afterPrint, 10000);
+  }, 150);
 }
 
 export function renderHolidayPlanner() {
@@ -1213,12 +1255,54 @@ export function exportMasterRoutinePDF(customSchoolName?: string) {
 
   printArea.innerHTML = html;
   printArea.style.display = 'block';
-  window.print();
-  setTimeout(() => {
+  
+  const inIframe = window.self !== window.top;
+
+  if (inIframe) {
+    try {
+      const printWin = window.open('', '_blank');
+      if (printWin) {
+        printWin.document.write(`
+          <html>
+            <head>
+              <title>Print Routine</title>
+              <style>
+                @media print {
+                  @page { size: landscape; margin: 5mm; }
+                  body { margin: 0; padding: 10px; }
+                }
+              </style>
+            </head>
+            <body>
+              ${html}
+              <script>
+                window.onload = () => {
+                  setTimeout(() => { window.print(); window.close(); }, 500);
+                };
+              </script>
+            </body>
+          </html>
+        `);
+        printWin.document.close();
+        return;
+      }
+    } catch (e) {
+      console.warn('Popup blocked or iframe restriction:', e);
+    }
+  }
+
+  const afterPrint = () => {
     document.body.classList.remove('printing-routine', 'print-landscape');
     printArea.style.display = 'none';
     printArea.innerHTML = '';
-  }, 1500);
+    window.removeEventListener('afterprint', afterPrint);
+  };
+  window.addEventListener('afterprint', afterPrint);
+
+  setTimeout(() => {
+    window.print();
+    setTimeout(afterPrint, 10000);
+  }, 150);
 }
 
 export function shareRoutineWA() {
@@ -1453,13 +1537,53 @@ export function printLeaveRegister(customSchoolName?: string) {
   document.body.classList.remove('printing-routine', 'print-landscape', 'printing-planner');
   document.body.classList.add('printing-leave', 'print-portrait');
 
-  window.print();
+  const inIframe = window.self !== window.top;
 
-  setTimeout(() => {
+  if (inIframe) {
+    try {
+      const printWin = window.open('', '_blank');
+      if (printWin) {
+        printWin.document.write(`
+          <html>
+            <head>
+              <title>Print Leave Application</title>
+              <style>
+                @media print {
+                  @page { size: portrait; margin: 10mm; }
+                  body { margin: 0; padding: 20px; }
+                }
+              </style>
+            </head>
+            <body>
+              ${html}
+              <script>
+                window.onload = () => {
+                  setTimeout(() => { window.print(); window.close(); }, 500);
+                };
+              </script>
+            </body>
+          </html>
+        `);
+        printWin.document.close();
+        return;
+      }
+    } catch (e) {
+      console.warn('Popup blocked or iframe restriction:', e);
+    }
+  }
+
+  const afterPrint = () => {
     document.body.classList.remove('printing-leave', 'print-portrait');
     printDiv.style.display = 'none';
     printDiv.innerHTML = '';
-  }, 1500);
+    window.removeEventListener('afterprint', afterPrint);
+  };
+  window.addEventListener('afterprint', afterPrint);
+
+  setTimeout(() => {
+    window.print();
+    setTimeout(afterPrint, 10000);
+  }, 150);
 }
 
 // =========================================================================

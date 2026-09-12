@@ -407,8 +407,8 @@ input, select, textarea {
 }
 
 @page leave-portrait {
-  size: portrait;
-  margin: 6mm;
+  size: A4 portrait;
+  margin: 12mm 15mm;
 }
 
 @media print {
@@ -472,6 +472,10 @@ input, select, textarea {
     position: static !important;
     width: 100% !important;
     background: #ffffff !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    max-height: 100vh;
+    overflow: hidden;
   }
   body.printing-leave #leavePrintArea * {
     visibility: visible !important;

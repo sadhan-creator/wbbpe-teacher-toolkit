@@ -29,6 +29,48 @@ export const OnScreenPreviewModal: React.FC<OnScreenPreviewModalProps> = ({
   if (!isOpen) return null;
 
   const handlePrint = () => {
+    // Check if we are inside an iframe (like AI Studio preview)
+    const inIframe = window.self !== window.top;
+
+    if (inIframe) {
+      try {
+        const printWin = window.open('', '_blank');
+        if (printWin) {
+          const styleStr = orientation === 'landscape' 
+            ? '@page { size: landscape; margin: 10mm; } body { margin: 0; padding: 20px; }' 
+            : '@page { size: portrait; margin: 10mm; } body { margin: 0; padding: 20px; }';
+            
+          printWin.document.write(`
+            <html>
+              <head>
+                <title>Print Preview</title>
+                <style>
+                  @media print {
+                    ${styleStr}
+                  }
+                </style>
+              </head>
+              <body>
+                ${htmlContent}
+                <script>
+                  window.onload = () => {
+                    setTimeout(() => {
+                      window.print();
+                      window.close();
+                    }, 500);
+                  };
+                </script>
+              </body>
+            </html>
+          `);
+          printWin.document.close();
+          return;
+        }
+      } catch (e) {
+        console.warn('Popup blocked or iframe restriction:', e);
+      }
+    }
+
     document.body.classList.add('printing-onscreen-preview');
     if (orientation === 'landscape') {
       document.body.classList.add('print-landscape');
@@ -38,11 +80,16 @@ export const OnScreenPreviewModal: React.FC<OnScreenPreviewModalProps> = ({
       document.body.classList.remove('print-landscape');
     }
 
-    window.print();
+    const afterPrint = () => {
+      document.body.classList.remove('printing-onscreen-preview', 'print-landscape', 'print-portrait');
+      window.removeEventListener('afterprint', afterPrint);
+    };
+    window.addEventListener('afterprint', afterPrint);
 
     setTimeout(() => {
-      document.body.classList.remove('printing-onscreen-preview', 'print-landscape', 'print-portrait');
-    }, 1500);
+      window.print();
+      setTimeout(afterPrint, 10000);
+    }, 150);
   };
 
   const handleCopyText = async () => {

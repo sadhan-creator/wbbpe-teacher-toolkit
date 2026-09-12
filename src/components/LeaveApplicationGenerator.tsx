@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import html2pdf from 'html2pdf.js';
 
 // Helper function to auto-capitalize (Title Case) inputs safely
 const toTitleCase = (str: string) => {
@@ -411,15 +412,16 @@ I, therefore, earnestly request you to kindly grant me Compensatory Leave for th
     const salutation = lang === 'bn' ? 'মহাশয় / মহাশয়া,' : 'Sir/Madam,';
     const closingStr = lang === 'bn' ? 'নমস্কারান্তে,<br>আপনার বিশ্বস্ত,' : 'Yours faithfully,';
 
-    pa.innerHTML = `
-      <div style="font-family: 'Times New Roman', serif, sans-serif; font-size: 14px; line-height: 1.6; max-width: 750px; margin: 0 auto; color: #000;">
-        <div style="text-align: right; margin-bottom: 20px;">Date: ${dynamicDate}</div>
+    const htmlContent = `
+      <div style="font-family: 'Times New Roman', serif, sans-serif; font-size: 14px; line-height: 1.6; max-width: 750px; margin: 0 auto; color: #000; padding: 20px;">
         <div style="white-space: pre-wrap; font-weight: bold;">${header}</div>
         <div style="margin: 20px 0; font-weight: bold; text-decoration: underline;">Sub: ${sub}</div>
         <div>${salutation}</div>
         <div style="margin: 10px 0; text-align: justify; white-space: pre-wrap;">${bodyText}</div>
         <div style="margin-top: 40px; display: flex; justify-content: space-between;">
-          <div style="width: 50%;">
+          <div style="width: 50%; text-align: left;">
+            <div>Date: ${dynamicDate}</div>
+            <div>Place: ${schoolName || '_______________'}</div>
             ${enclosures ? `<div style="white-space: pre-wrap; font-size: 12px; margin-top: 20px;">${enclosures}</div>` : ''}
           </div>
           <div style="width: 40%; text-align: right;">
@@ -432,10 +434,129 @@ I, therefore, earnestly request you to kindly grant me Compensatory Leave for th
         ${dpscBoxes}
       </div>
     `;
-    window.print();
-    setTimeout(() => {
+
+    pa.innerHTML = htmlContent;
+
+    // Check if we are inside an iframe (like AI Studio preview)
+    const inIframe = window.self !== window.top;
+
+    if (inIframe) {
+      try {
+        const printWin = window.open('', '_blank');
+        if (printWin) {
+          printWin.document.write(`
+            <html>
+              <head>
+                <title>Print Leave Application</title>
+                <style>
+                  @media print {
+                    body { margin: 0; padding: 20px; }
+                  }
+                </style>
+              </head>
+              <body>
+                ${htmlContent}
+                <script>
+                  window.onload = () => {
+                    setTimeout(() => {
+                      window.print();
+                      window.close();
+                    }, 500);
+                  };
+                </script>
+              </body>
+            </html>
+          `);
+          printWin.document.close();
+          return;
+        }
+      } catch (e) {
+        console.warn('Popup blocked or iframe restriction:', e);
+      }
+    }
+
+    // Fix for mobile devices where print dialog takes longer to render
+    const afterPrint = () => {
       document.body.classList.remove('printing-leave');
-    }, 1000);
+      window.removeEventListener('afterprint', afterPrint);
+    };
+    window.addEventListener('afterprint', afterPrint);
+
+    setTimeout(() => {
+      window.print();
+      // Fallback timeout in case afterprint doesn't fire
+      setTimeout(afterPrint, 10000);
+    }, 150);
+  };
+
+  const handleDownloadPDF = () => {
+    const { header, sub, bodyText, enclosures, isDPSC } = generateLetterContent();
+
+    let dpscBoxes = '';
+    if (isDPSC) {
+      if (lang === 'bn') {
+        dpscBoxes = `
+          <div style="display:flex; justify-content:space-between; margin-top:80px;">
+            <div style="border: 1px solid #000; padding:40px 20px 10px; width:45%; text-align:center; font-size:12px;">
+              সুপারিশসহ প্রেরিত<br><br><br>স্বাক্ষর ও সিল (প্রধান শিক্ষক)
+            </div>
+            <div style="border: 1px solid #000; padding:40px 20px 10px; width:45%; text-align:center; font-size:12px;">
+              সুপারিশসহ প্রেরিত<br><br><br>স্বাক্ষর ও সিল (অবর বিদ্যালয় পরিদর্শক)
+            </div>
+          </div>`;
+      } else {
+        dpscBoxes = `
+          <div style="display:flex; justify-content:space-between; margin-top:80px;">
+            <div style="border: 1px solid #000; padding:40px 20px 10px; width:45%; text-align:center; font-size:12px;">
+              Forwarded & Recommended<br><br><br>Signature & Seal (Head Teacher)
+            </div>
+            <div style="border: 1px solid #000; padding:40px 20px 10px; width:45%; text-align:center; font-size:12px;">
+              Forwarded & Recommended<br><br><br>Signature & Seal (Sub-Inspector)
+            </div>
+          </div>`;
+      }
+    }
+
+    const salutation = lang === 'bn' ? 'মহাশয় / মহাশয়া,' : 'Sir/Madam,';
+    const closingStr = lang === 'bn' ? 'নমস্কারান্তে,<br>আপনার বিশ্বস্ত,' : 'Yours faithfully,';
+
+    const htmlContent = `
+      <div style="font-family: 'Times New Roman', serif, sans-serif; font-size: 14px; line-height: 1.6; max-width: 750px; margin: 0 auto; color: #000; padding: 20px;">
+        <div style="white-space: pre-wrap; font-weight: bold;">${header}</div>
+        <div style="margin: 20px 0; font-weight: bold; text-decoration: underline;">Sub: ${sub}</div>
+        <div>${salutation}</div>
+        <div style="margin: 10px 0; text-align: justify; white-space: pre-wrap;">${bodyText}</div>
+        <div style="margin-top: 40px; display: flex; justify-content: space-between;">
+          <div style="width: 50%; text-align: left;">
+            <div>Date: ${dynamicDate}</div>
+            <div>Place: ${schoolName || '_______________'}</div>
+            ${enclosures ? `<div style="white-space: pre-wrap; font-size: 12px; margin-top: 20px;">${enclosures}</div>` : ''}
+          </div>
+          <div style="width: 40%; text-align: right;">
+            ${closingStr}<br><br><br>
+            <span style="font-weight:bold;">${teacherName || '[Name]'}</span><br>
+            ${designation || '[Designation]'}<br>
+            ${schoolName || '[School]'}
+          </div>
+        </div>
+        ${dpscBoxes}
+      </div>
+    `;
+
+    const element = document.createElement('div');
+    element.innerHTML = htmlContent;
+
+    const formattedDate = new Date().toISOString().split('T')[0];
+    const teacherFileName = teacherName ? teacherName.replace(/\s+/g, '_') : 'Teacher';
+    const opt = {
+      margin: 15,
+      filename: `Leave_Application_${teacherFileName}_${formattedDate}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save();
   };
 
   const handleWhatsApp = () => {
@@ -443,7 +564,7 @@ I, therefore, earnestly request you to kindly grant me Compensatory Leave for th
     const salutation = lang === 'bn' ? 'মহাশয় / মহাশয়া,' : 'Sir/Madam,';
     const closingStr = lang === 'bn' ? 'নমস্কারান্তে,\nআপনার বিশ্বস্ত,' : 'Yours faithfully,';
     
-    const text = `Date: ${dynamicDate}\n\n${header}\n\nSub: ${sub}\n\n${salutation}\n${bodyText}\n\n${closingStr}\n${teacherName || '[Name]'}\n${designation || '[Designation]'}\n${schoolName || '[School]'}\n\n${enclosures}`;
+    const text = `${header}\n\nSub: ${sub}\n\n${salutation}\n${bodyText}\n\nDate: ${dynamicDate}\nPlace: ${schoolName || '[School]'}\n\n${closingStr}\n${teacherName || '[Name]'}\n${designation || '[Designation]'}\n${schoolName || '[School]'}\n\n${enclosures}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -689,6 +810,13 @@ I, therefore, earnestly request you to kindly grant me Compensatory Leave for th
             >
               🖨️ {lang === 'bn' ? 'প্রিন্ট (A4)' : 'Print A4'}
             </button>
+            <button
+              onClick={handleDownloadPDF}
+              disabled={!isDaysValid}
+              style={{ padding: '12px', background: isDaysValid ? '#ea580c' : '#94a3b8', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: isDaysValid ? 'pointer' : 'not-allowed' }}
+            >
+              📄 {lang === 'bn' ? 'PDF ডাউনলোড' : 'Download PDF'}
+            </button>
           </div>
 
           <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
@@ -713,18 +841,26 @@ I, therefore, earnestly request you to kindly grant me Compensatory Leave for th
           {showPreview && (
             <div style={{ marginTop: '16px', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '16px', background: '#f8fafc' }}>
               <div style={{ whiteSpace: 'pre-wrap', fontSize: '12px', lineHeight: 1.6, color: '#334155' }}>
-                <div style={{ textAlign: 'right', marginBottom: '12px' }}>Date: {dynamicDate}</div>
                 <div style={{ fontWeight: 'bold' }}>{header}</div>
                 <div style={{ margin: '12px 0', fontWeight: 'bold' }}>Sub: {sub}</div>
                 <div>{lang === 'bn' ? 'মহাশয় / মহাশয়া,' : 'Sir/Madam,'}</div>
                 <div style={{ margin: '8px 0', textAlign: 'justify' }}>{bodyText}</div>
-                <div style={{ marginTop: '12px' }}>{lang === 'bn' ? 'নমস্কারান্তে,\nআপনার বিশ্বস্ত,' : 'Yours faithfully,'}</div>
-                <div style={{ textAlign: 'right', marginTop: '12px' }}>
-                  {teacherName || '[Name]'}<br/>
-                  {designation || '[Designation]'}<br/>
-                  {schoolName || '[School]'}
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
+                  <div style={{ textAlign: 'left' }}>
+                    <div>Date: {dynamicDate}</div>
+                    <div>Place: {schoolName || '[School]'}</div>
+                    {enclosures && <div style={{ marginTop: '16px', fontWeight: 'bold' }}>{enclosures}</div>}
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div>{lang === 'bn' ? 'নমস্কারান্তে,\nআপনার বিশ্বস্ত,' : 'Yours faithfully,'}</div>
+                    <div style={{ marginTop: '12px' }}>
+                      {teacherName || '[Name]'}<br/>
+                      {designation || '[Designation]'}<br/>
+                      {schoolName || '[School]'}
+                    </div>
+                  </div>
                 </div>
-                {enclosures && <div style={{ marginTop: '16px', fontWeight: 'bold' }}>{enclosures}</div>}
               </div>
             </div>
           )}
