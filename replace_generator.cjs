@@ -1,0 +1,329 @@
+const fs = require('fs');
+const content = fs.readFileSync('src/App.tsx', 'utf-8');
+
+const startStr = "function LeaveApplicationGenerator() {";
+const endStr = "export default function App() {";
+
+const startIndex = content.indexOf(startStr);
+const endIndex = content.indexOf(endStr);
+
+if (startIndex !== -1 && endIndex !== -1) {
+  const replacement = `function LeaveApplicationGenerator() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [lang, setLang] = useState<'bn' | 'en'>('bn');
+  const [recipient, setRecipient] = useState('মাননীয় প্রধান শিক্ষক / ভারপ্রাপ্ত প্রধান শিক্ষক মহাশয়');
+  const [teacherName, setTeacherName] = useState('');
+  const [designation, setDesignation] = useState('সহকারী শিক্ষক / শিক্ষিকা');
+  const [schoolName, setSchoolName] = useState('');
+  const [leaveType, setLeaveType] = useState('advance');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [reason, setReason] = useState('পারিবারিক জরুরি কাজ');
+  const [customReason, setCustomReason] = useState('');
+
+  // Dropdown options based on language
+  const recipients = lang === 'bn' 
+    ? ['মাননীয় প্রধান শিক্ষক / ভারপ্রাপ্ত প্রধান শিক্ষক মহাশয়', 'মাননীয় বিদ্যালয় পরিদর্শক (SI of Schools) মহাশয়']
+    : ['The Headmaster / Teacher-in-Charge', 'The Sub-Inspector of Schools'];
+    
+  const designations = lang === 'bn'
+    ? ['সহকারী শিক্ষক / শিক্ষিকা', 'প্রধান শিক্ষক / শিক্ষিকা', 'ভারপ্রাপ্ত প্রধান শিক্ষক']
+    : ['Assistant Teacher', 'Headmaster / Headmistress', 'Teacher-in-Charge'];
+    
+  const reasonPresets = lang === 'bn'
+    ? ['পারিবারিক জরুরি কাজ', 'হঠাৎ শারীরিক অসুস্থতা', 'চিকিৎসকের পরামর্শ / মেডিকেল চেক-আপ', 'অন্যান্য ব্যক্তিগত কারণ']
+    : ['Urgent Family Business', 'Sudden Illness', 'Medical Check-up', 'Other Personal Reasons'];
+
+  useEffect(() => {
+    // Reset defaults when language changes to prevent language mixing
+    setRecipient(recipients[0]);
+    setDesignation(designations[0]);
+    setReason(reasonPresets[0]);
+    setCustomReason('');
+  }, [lang]);
+
+  const displayReason = reason === 'custom' ? customReason : reason;
+
+  useEffect(() => {
+    const w = window as any;
+    const name = w.SafeStorage?.getItem('teacher_name_cl') || '';
+    const des = w.SafeStorage?.getItem('teacher_designation_cl');
+    const sch = w.SafeStorage?.getItem('teacher_school_cl') || '';
+    if (name) setTeacherName(name);
+    // Only load designation from storage if it matches the current language to avoid English in Bengali UI
+    if (des && (designations.includes(des) || lang === 'bn')) {
+      if (designations.includes(des)) setDesignation(des);
+    }
+    if (sch) setSchoolName(sch);
+  }, [lang]);
+
+  useEffect(() => {
+    const w = window as any;
+    if (w.SafeStorage) {
+      w.SafeStorage.setItem('teacher_name_cl', teacherName);
+      w.SafeStorage.setItem('teacher_designation_cl', designation);
+      w.SafeStorage.setItem('teacher_school_cl', schoolName);
+    }
+  }, [teacherName, designation, schoolName]);
+
+  const calcDays = () => {
+    if (!fromDate || !toDate) return 1;
+    const from = new Date(fromDate);
+    const to = new Date(toDate);
+    const diffTime = to.getTime() - from.getTime();
+    if (diffTime < 0) return 1;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  };
+
+  const totalDays = calcDays();
+  const locale = lang === 'bn' ? 'bn-IN' : 'en-IN';
+  const currentFormattedDate = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+
+  const generateLetterText = () => {
+    const formattedFrom = fromDate ? new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(fromDate)) : '___';
+    const formattedTo = toDate ? new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(toDate)) : '___';
+    const displayDays = lang === 'bn' ? toBengaliNum(totalDays) : totalDays.toString();
+    
+    let letter = '';
+    
+    if (lang === 'bn') {
+      letter = \`প্রতি,\\n\${recipient}\\n\${schoolName || '[বিদ্যালয়ের নাম]'}\\n\\n\`;
+      letter += \`বিষয়: নৈমিত্তিক ছুটি (Casual Leave)-র আবেদন।\\n\\n\`;
+      letter += \`মহাশয়,\\n\`;
+      
+      if (leaveType === 'advance') {
+        letter += \`   বিনীত নিবেদন এই যে, আমি আপনার বিদ্যালয়ের \${designation}। আমার \${displayReason || '______'}-এর জন্য আগামী \${formattedFrom} হইতে \${formattedTo} পর্যন্ত মোট \${displayDays} দিনের নৈমিত্তিক ছুটি (CL) গ্রহণ করা একান্ত প্রয়োজন।\\n\\n\`;
+        letter += \`অতএব, আপনার নিকট বিনীত প্রার্থনা, অনুগ্রহপূর্বক উক্ত দিনগুলির নৈমিত্তিক ছুটি মঞ্জুর করিয়া বাধিত করিবেন।\`;
+      } else {
+        letter += \`   বিনীত নিবেদন এই যে, আমি আপনার বিদ্যালয়ের \${designation}। আমি বিগত \${formattedFrom} হইতে \${formattedTo} পর্যন্ত মোট \${displayDays} দিন \${displayReason || '______'}-এর কারণে বিদ্যালয়ে উপস্থিত হইতে পারি নাই।\\n\\n\`;
+        letter += \`অতএব, আপনার নিকট বিনীত প্রার্থনা, অনুগ্রহপূর্বক উক্ত দিনগুলি নৈমিত্তিক ছুটি (CL) হিসেবে মঞ্জুর করিয়া বাধিত করিবেন।\`;
+      }
+      
+      letter += \`\\n\\nতারিখ: \${currentFormattedDate}\`;
+      letter += \`\\n\\n                                                       বিনীত,\\n                                                       \${teacherName || '[শিক্ষকের নাম]'}\\n                                                       \${designation}\\n                                                       \${schoolName || '[বিদ্যালয়ের নাম]'}\`;
+    } else {
+      letter = \`To,\\n\${recipient}\\n\${schoolName || '[School Name]'}\\n\\n\`;
+      letter += \`Sub: Application for Casual Leave (CL)\\n\\n\`;
+      letter += \`Respected Sir/Madam,\\n\`;
+      
+      if (leaveType === 'advance') {
+        letter += \`   With due respect, I would like to state that I am serving as \${designation} in your school. I need to take \${displayDays} day(s) of Casual Leave (CL) from \${formattedFrom} to \${formattedTo} due to \${displayReason || '______'}.\\n\\n\`;
+        letter += \`I, therefore, request you to kindly grant me casual leave for the aforementioned period and oblige.\`;
+      } else {
+        letter += \`   With due respect, I would like to state that I am serving as \${designation} in your school. I could not attend school for \${displayDays} day(s) from \${formattedFrom} to \${formattedTo} due to \${displayReason || '______'}.\\n\\n\`;
+        letter += \`I, therefore, request you to kindly sanction my casual leave for the aforementioned period and oblige.\`;
+      }
+      
+      letter += \`\\n\\nDate: \${currentFormattedDate}\`;
+      letter += \`\\n\\n                                                       Yours faithfully,\\n                                                       \${teacherName || '[Teacher Name]'}\\n                                                       \${designation}\\n                                                       \${schoolName || '[School Name]'}\`;
+    }
+    
+    return letter;
+  };
+
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    
+    const html = \`
+      <html>
+        <head>
+          <title>CL Application</title>
+          <style>
+            body { font-family: 'Hind Siliguri', sans-serif; padding: 40px; color: #000; line-height: 1.6; font-size: 15px; }
+            .letter-content { white-space: pre-wrap; text-align: justify; }
+            @media print {
+              body { padding: 20px 40px; font-size: 14pt; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="letter-content">\${generateLetterText()}</div>
+          <script>window.print();</script>
+        </body>
+      </html>
+    \`;
+    printWindow.document.write(html);
+    printWindow.document.close();
+  };
+
+  const handleWhatsApp = () => {
+    const text = generateLetterText();
+    window.open(\`https://wa.me/?text=\${encodeURIComponent(text)}\`, '_blank');
+  };
+
+  const handleAddToRegister = () => {
+    if (!fromDate) {
+      alert(lang === 'bn' ? 'দয়া করে শুরুর তারিখ নির্বাচন করুন!' : 'Please select the From date!');
+      return;
+    }
+    const w = window as any;
+    if (w.addLeaveEntryDirectly) {
+      w.addLeaveEntryDirectly(fromDate, 'CL', displayReason);
+      alert(lang === 'bn' ? '✅ সফলভাবে লিভ রেজিস্টারে যুক্ত করা হয়েছে এবং CL ব্যালেন্স থেকে দিন বাদ দেওয়া হয়েছে!' : '✅ Successfully added to the leave register and deducted from balance!');
+    }
+  };
+
+  return (
+    <div style={{ marginBottom: '16px' }}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          width: '100%',
+          background: 'linear-gradient(135deg, #1d4ed8, #2563eb)',
+          color: '#ffffff',
+          border: 'none',
+          padding: '12px',
+          borderRadius: '12px',
+          fontSize: '13px',
+          fontWeight: 700,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)',
+          cursor: 'pointer'
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '18px' }}>✍️</span> {lang === 'bn' ? 'স্মার্ট CL দরখাস্ত তৈরি করুন' : 'Smart CL Application Generator'}
+        </span>
+        <span>{isOpen ? '▲' : '▼'}</span>
+      </button>
+
+      {isOpen && (
+        <div style={{ background: '#ffffff', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', marginTop: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+          
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', background: '#f1f5f9', padding: '4px', borderRadius: '24px', border: '1px solid #cbd5e1' }}>
+              <button onClick={() => setLang('bn')} style={{ background: lang === 'bn' ? '#fff' : 'transparent', color: lang === 'bn' ? '#2563eb' : '#64748b', border: 'none', padding: '6px 16px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', boxShadow: lang === 'bn' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none' }}>বাংলা</button>
+              <button onClick={() => setLang('en')} style={{ background: lang === 'en' ? '#fff' : 'transparent', color: lang === 'en' ? '#2563eb' : '#64748b', border: 'none', padding: '6px 16px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', boxShadow: lang === 'en' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none' }}>English</button>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>{lang === 'bn' ? 'শিক্ষকের নাম' : 'Teacher Name'}</label>
+            <input 
+              type="text" 
+              value={teacherName} 
+              onChange={e => setTeacherName(e.target.value)} 
+              placeholder={lang === 'bn' ? 'আপনার নাম লিখুন' : 'Enter your name'} 
+              style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px' }} 
+            />
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>{lang === 'bn' ? 'পদবী' : 'Designation'}</label>
+              <select 
+                value={designation} 
+                onChange={e => setDesignation(e.target.value)}
+                style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px', background: '#fff' }}
+              >
+                {designations.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>{lang === 'bn' ? 'বিদ্যালয় ও সার্কেল' : 'School Name'}</label>
+              <input 
+                type="text" 
+                value={schoolName} 
+                onChange={e => setSchoolName(e.target.value)} 
+                placeholder={lang === 'bn' ? 'স্কুল ও সার্কেলের নাম' : 'School & Circle name'} 
+                style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px' }} 
+              />
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>{lang === 'bn' ? 'প্রাপক (To)' : 'Recipient (To)'}</label>
+            <select 
+              value={recipient} 
+              onChange={e => setRecipient(e.target.value)}
+              style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px', background: '#fff' }}
+            >
+              {recipients.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>{lang === 'bn' ? 'আবেদনের ধরন' : 'Application Type'}</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <label style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                <input type="radio" checked={leaveType === 'advance'} onChange={() => setLeaveType('advance')} /> {lang === 'bn' ? 'অগ্রিম আবেদন' : 'Advance Application'}
+              </label>
+              <label style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                <input type="radio" checked={leaveType === 'post-facto'} onChange={() => setLeaveType('post-facto')} /> {lang === 'bn' ? 'ছুটি পরবর্তী নিয়মিতকরণ' : 'Post-facto'}
+              </label>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>{lang === 'bn' ? 'শুরুর তারিখ (From)' : 'Start Date (From)'}</label>
+              <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px' }} />
+            </div>
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>{lang === 'bn' ? 'শেষের তারিখ (To)' : 'End Date (To)'}</label>
+              <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px' }} />
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '12px', fontSize: '12px', color: '#1e40af', fontWeight: 700, background: '#eff6ff', padding: '8px 12px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+            {lang === 'bn' ? \`মোট ছুটি: \${toBengaliNum(totalDays)} দিন\` : \`Total Leave: \${totalDays} day(s)\`}
+          </div>
+
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '6px' }}>{lang === 'bn' ? 'ছুটির কারণ' : 'Reason for Leave'}</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+              {reasonPresets.map(r => (
+                <span 
+                  key={r}
+                  onClick={() => { setReason(r); setCustomReason(''); }}
+                  style={{ background: reason === r ? '#3b82f6' : '#f1f5f9', color: reason === r ? '#fff' : '#475569', padding: '6px 12px', borderRadius: '16px', fontSize: '11.5px', cursor: 'pointer', fontWeight: reason === r ? 600 : 500, border: reason === r ? 'none' : '1px solid #cbd5e1' }}
+                >
+                  {r}
+                </span>
+              ))}
+              <span 
+                onClick={() => setReason('custom')}
+                style={{ background: reason === 'custom' ? '#3b82f6' : '#f1f5f9', color: reason === 'custom' ? '#fff' : '#475569', padding: '6px 12px', borderRadius: '16px', fontSize: '11.5px', cursor: 'pointer', fontWeight: reason === 'custom' ? 600 : 500, border: reason === 'custom' ? 'none' : '1px solid #cbd5e1' }}
+              >
+                {lang === 'bn' ? 'নিজে লিখুন...' : 'Custom...'}
+              </span>
+            </div>
+            {reason === 'custom' && (
+              <input 
+                type="text" 
+                value={customReason} 
+                onChange={e => setCustomReason(e.target.value)} 
+                placeholder={lang === 'bn' ? 'ছুটির কারণ সংক্ষেপে লিখুন' : 'Enter custom reason briefly'} 
+                style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px' }} 
+              />
+            )}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <button onClick={handlePrint} style={{ background: '#475569', color: '#fff', border: 'none', padding: '10px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                🖨️ {lang === 'bn' ? 'প্রিন্ট / PDF' : 'Print / PDF'}
+              </button>
+              <button onClick={handleWhatsApp} style={{ background: '#16a34a', color: '#fff', border: 'none', padding: '10px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', boxShadow: '0 2px 4px rgba(22,163,74,0.2)' }}>
+                💬 WhatsApp
+              </button>
+            </div>
+            <button onClick={handleAddToRegister} style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '10px', borderRadius: '8px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              ➕ {lang === 'bn' ? 'লিভ রেজিস্টারে যুক্ত করুন' : 'Add to Leave Register'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+`;
+  const newContent = content.substring(0, startIndex) + replacement + content.substring(endIndex);
+  fs.writeFileSync('src/App.tsx', newContent);
+  console.log('Successfully updated LeaveApplicationGenerator');
+} else {
+  console.log('Failed to find boundaries');
+}

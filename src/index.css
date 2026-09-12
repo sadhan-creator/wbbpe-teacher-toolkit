@@ -1,0 +1,648 @@
+@import url("https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+
+:root {
+  --p: #2563eb;
+  --bg: #f0f7ff;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: "Hind Siliguri", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  margin: 0;
+  padding: 10px;
+  padding-bottom: calc(120px + env(safe-area-inset-bottom, 25px));
+  color: #0f172a;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+  min-height: 100vh;
+}
+
+#p1, #p2, #p3, #p4, #p5, #p6, #p7, #p8, #p9 {
+  animation: slideFade 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideFade {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.hdr {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #fff;
+  padding: 14px;
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.2);
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 12px;
+  margin: 10px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .06);
+  border: 1px solid #e2e8f0;
+}
+
+.btn {
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  color: #fff;
+  width: 100%;
+  cursor: pointer;
+  font-size: 11px;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.btn:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+.b { background: var(--p); }
+.g { background: #16a34a; }
+.o { background: #f59e0b; }
+
+.cal {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.day {
+  padding: 8px 0;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 11px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  min-height: 48px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.day:active {
+  background: #f1f5f9;
+}
+
+.holi {
+  background: #ef4444 !important;
+  color: #fff !important;
+  font-weight: 700;
+}
+
+.obs {
+  background: #fff !important;
+  color: #4338ca !important;
+  border: 2px dashed #6366f1 !important;
+}
+
+.today {
+  border: 2.5px solid #2563eb !important;
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.35);
+}
+
+/* Date range selection in calendar */
+.range-mode-active .day {
+  transition: all 0.15s ease;
+}
+
+.day.range-start {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  border: 2px solid #1e40af !important;
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+}
+
+.day.range-end {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  border: 2px solid #1e40af !important;
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+}
+
+.day.range-single {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  border: 2px solid #1e40af !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+}
+
+.day.range-mid {
+  background: #eff6ff !important;
+  color: #1e3a8a !important;
+  border: 1px solid #bfdbfe !important;
+  border-radius: 4px !important;
+  font-weight: 600;
+}
+
+.day.range-mid.holi {
+  background: #fee2e2 !important;
+  color: #b91c1c !important;
+  border: 1.5px solid #f87171 !important;
+}
+
+.day.range-mid.obs {
+  background: #e0e7ff !important;
+  color: #3730a3 !important;
+  border: 1.5px dashed #818cf8 !important;
+}
+
+.day.range-picked-start {
+  background: #dbeafe !important;
+  color: #1d4ed8 !important;
+  border: 2.5px dashed #2563eb !important;
+  font-weight: 800 !important;
+  border-radius: 10px !important;
+  animation: pulseStart 1.5s infinite;
+}
+
+@keyframes pulseStart {
+  0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(37, 99, 235, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+}
+
+.badge {
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  color: #fff;
+  display: inline-block;
+  font-weight: 600;
+}
+
+.tabs {
+  position: fixed;
+  bottom: calc(14px + env(safe-area-inset-bottom, 20px));
+  left: 10px;
+  right: 10px;
+  max-width: 460px;
+  margin: 0 auto;
+  background: #ffffff;
+  display: flex;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
+  border: 1px solid #cbd5e1;
+  border-radius: 20px;
+  z-index: 9999;
+  padding: 6px 2px;
+  backdrop-filter: blur(10px);
+}
+
+.tabs div {
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  text-align: center;
+  padding: 6px 2px;
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #64748b;
+  border-radius: 12px;
+  margin: 0 2px;
+  line-height: 1.25;
+}
+
+.tabs div:active {
+  transform: scale(0.95);
+}
+
+/* Pure CSS Ripple Effect for Tabs */
+.tabs div::after {
+  content: "";
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, #475569 10%, transparent 10.01%);
+  background-repeat: no-repeat;
+  background-position: 50%;
+  transform: scale(10, 10);
+  opacity: 0;
+  transition: transform .5s, opacity 1s;
+}
+
+.tabs div:active::after {
+  transform: scale(0, 0);
+  opacity: 0.15;
+  transition: 0s;
+}
+
+
+.act {
+  color: var(--p) !important;
+  background: #eff6ff;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  margin-top: 5px;
+  font-size: 12px;
+  font-family: inherit;
+  background: #fff;
+}
+
+.routine-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  margin-top: 8px;
+}
+
+.routine-table th {
+  background: #2563eb;
+  color: #fff;
+  padding: 8px 4px;
+  text-align: center;
+}
+
+.routine-table td {
+  border: 1px solid #e2e8f0;
+  padding: 6px 4px;
+  text-align: center;
+}
+
+.routine-select {
+  padding: 4px !important;
+  font-size: 10px;
+  border: 1px solid #cbd5e1 !important;
+  background: #fff;
+  border-radius: 6px;
+  margin: 0;
+}
+
+#calCard, #planCalCard {
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.speech-box {
+  background: #f8fafc;
+  border-left: 4px solid var(--p);
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.6;
+  margin-top: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.plan-cal-day {
+  min-height: 38px;
+  padding: 4px 0;
+  font-size: 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  text-align: center;
+  cursor: pointer;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.plan-selected {
+  background: #2563eb !important;
+  color: #fff !important;
+  font-weight: 700;
+  border: 2px solid #1e40af !important;
+}
+
+/* Modal animation */
+#dayPopup {
+  backdrop-filter: blur(4px);
+}
+
+/* Speech synthesis audio wave animation */
+@keyframes soundWave {
+  0%, 100% { height: 4px; }
+  50% { height: 16px; }
+}
+
+.sound-wave-bars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2.5px;
+  height: 18px;
+  padding: 0 4px;
+}
+
+.sound-wave-bars span {
+  display: inline-block;
+  width: 3px;
+  height: 6px;
+  background-color: currentColor;
+  border-radius: 2px;
+  animation: soundWave 1.2s ease-in-out infinite;
+}
+
+.sound-wave-bars span:nth-child(1) { animation-delay: 0.0s; }
+.sound-wave-bars span:nth-child(2) { animation-delay: 0.2s; }
+.sound-wave-bars span:nth-child(3) { animation-delay: 0.4s; }
+.sound-wave-bars span:nth-child(4) { animation-delay: 0.1s; }
+.sound-wave-bars span:nth-child(5) { animation-delay: 0.3s; }
+
+/* Pulse effect on active voice button */
+@keyframes voiceGlow {
+  0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4); }
+  70% { box-shadow: 0 0 0 8px rgba(22, 163, 74, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+}
+
+.voice-speaking-active {
+  animation: voiceGlow 2s infinite;
+}
+
+@page {
+  margin: 6mm;
+}
+
+@page routine-landscape {
+  size: landscape;
+  margin: 5mm;
+}
+
+@page planner-portrait {
+  size: portrait;
+  margin: 6mm;
+}
+
+@page leave-portrait {
+  size: portrait;
+  margin: 6mm;
+}
+
+@media print {
+  body.print-landscape {
+    page: routine-landscape;
+  }
+  body.print-portrait {
+    page: planner-portrait;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    color: #000000 !important;
+  }
+
+  /* Completely hide all app chrome, tabs, headers, buttons, form controls, modals, toasts */
+  .hdr, .tabs, #p1, #p2, #p3, #p4, #p5, #p6, #p7, #dayPopup, .btn, input, select, textarea,
+  .no-print, .pdf-modal-overlay, #inAppToast, [role="dialog"] {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Default hide all print areas */
+  #masterPrintArea, #planPrintArea, #leavePrintArea {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* When printing routine */
+  body.printing-routine #masterPrintArea {
+    display: block !important;
+    visibility: visible !important;
+    position: static !important;
+    width: 100% !important;
+    background: #ffffff !important;
+  }
+  body.printing-routine #masterPrintArea * {
+    visibility: visible !important;
+  }
+
+  /* When printing holiday planner */
+  body.printing-planner #planPrintArea {
+    display: block !important;
+    visibility: visible !important;
+    position: static !important;
+    width: 100% !important;
+    background: #ffffff !important;
+  }
+  body.printing-planner #planPrintArea * {
+    visibility: visible !important;
+  }
+
+  /* When printing personal leave register */
+  body.printing-leave #leavePrintArea {
+    display: block !important;
+    visibility: visible !important;
+    position: static !important;
+    width: 100% !important;
+    background: #ffffff !important;
+  }
+  body.printing-leave #leavePrintArea * {
+    visibility: visible !important;
+  }
+
+  /* When printing from On-Screen Preview Modal */
+  body.printing-onscreen-preview #onScreenPreviewBackdrop {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    display: block !important;
+    visibility: visible !important;
+    backdrop-filter: none !important;
+    inset: auto !important;
+    overflow: visible !important;
+  }
+  body.printing-onscreen-preview #onScreenPreviewDialog {
+    box-shadow: none !important;
+    border: none !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    background: #ffffff !important;
+    display: block !important;
+    visibility: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  body.printing-onscreen-preview #screen-preview-print-container {
+    display: block !important;
+    visibility: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+  body.printing-onscreen-preview #screen-preview-print-container * {
+    visibility: visible !important;
+  }
+}
+
+/* =========================================================
+   ASSEMBLY AUDIO PLAYER & KARAOKE STYLES
+   ========================================================= */
+@keyframes soundWaveAnim {
+  0%, 100% { height: 6px; }
+  50% { height: 22px; }
+}
+
+.sound-wave-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 24px;
+}
+
+.sound-wave-bar {
+  width: 3.5px;
+  border-radius: 4px;
+  background: #2563eb;
+  transition: height 0.15s ease;
+}
+
+.sound-wave-container.playing .sound-wave-bar:nth-child(1) {
+  animation: soundWaveAnim 0.7s infinite ease-in-out;
+}
+.sound-wave-container.playing .sound-wave-bar:nth-child(2) {
+  animation: soundWaveAnim 0.9s infinite ease-in-out 0.15s;
+}
+.sound-wave-container.playing .sound-wave-bar:nth-child(3) {
+  animation: soundWaveAnim 0.6s infinite ease-in-out 0.3s;
+}
+.sound-wave-container.playing .sound-wave-bar:nth-child(4) {
+  animation: soundWaveAnim 0.8s infinite ease-in-out 0.45s;
+}
+.sound-wave-container.playing .sound-wave-bar:nth-child(5) {
+  animation: soundWaveAnim 0.75s infinite ease-in-out 0.2s;
+}
+
+.assembly-track-tab {
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.assembly-track-tab:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.assembly-track-tab.active-track {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  color: #ffffff;
+  border-color: #1e40af;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.28);
+}
+
+.assembly-mode-pill {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.assembly-mode-pill.active-pill {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #1d4ed8;
+}
+
+.karaoke-box {
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 8px;
+  scroll-behavior: smooth;
+}
+
+.karaoke-line {
+  padding: 8px 12px;
+  margin: 4px 0;
+  border-radius: 8px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #475569;
+  transition: all 0.25s ease;
+  border: 1.5px solid transparent;
+}
+
+.karaoke-line.active-karaoke {
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-weight: 800;
+  font-size: 15px;
+  border-color: #60a5fa;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
+  transform: scale(1.01);
+}
+
+.pulse-button {
+  animation: pulsePlay 1.5s infinite;
+}
+
+@keyframes pulsePlay {
+  0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.5); }
+  70% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+}
+
+details > summary {
+  list-style: none;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}

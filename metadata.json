@@ -1,0 +1,6 @@
+{
+  "name": "WBBPE Teacher Calendar 2026",
+  "description": "WBBPE পশ্চিমবঙ্গ প্রাথমিক শিক্ষক শিক্ষিকা দিনপঞ্জিকা ২০২৬ - ৬৫ দিনের ছুটির তালিকা, ক্লাস রুটিন, পার্সোনাল লিভ ও সহায়িকা",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
